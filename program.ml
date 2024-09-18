@@ -1,5 +1,5 @@
 # 50 is printed
-# x <- a
+a <- 10
 x <- a # asdasd
 function multiply a b
 	x <- a * b

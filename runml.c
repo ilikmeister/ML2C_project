@@ -26,6 +26,9 @@ void translateComment (char *line, char *newLine, int len, int position) {
 }
 
 void translateArrow (char *line, char *newLine, int len, int position) {
+    // Indicator for the comment
+    int comment = 0;
+    
     // Shifting the characters 1 position to the left from '-' index
     for (int i = position; i < len; ++i) {
         line[i] = line[i + 1];
@@ -34,13 +37,32 @@ void translateArrow (char *line, char *newLine, int len, int position) {
     // Replacing the '<' with '='
     line[position - 1] = '=';
 
-    len--;
+    // Adding a semicolon if comment was found
+    for (int i = 0; i < len; ++i) {
+        // Checking for comment
+        if (line[i] == '#') {
+            comment = 1;
+            // Moving 1 space to the right
+            for (int j = len; j > i; --j) {
+                line[j] = line[j - 1];
+            }
+            // Semicolon before comment
+            line[i] = ';';
+            len++;
+            break;
+        }
+    }
+
+    // Adding a semicolon if comment was not found
+    if (comment != 1) {
+        line[len - 2] = ';';
+    }
 
     // Adding new line
-    line[len] = '\n';
+    line[len - 1] = '\n';
 
     // Adding a null byte
-    line[len + 1] = '\0';
+    line[len] = '\0';
 
     // Copying the translated line to a new line
     strcpy(newLine, line);
