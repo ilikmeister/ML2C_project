@@ -8,6 +8,16 @@
 #include <unistd.h>
 #include <string.h>
 
+void prependTab (char* newLine) {
+    char tab[2] = "\t";
+    char temp[BUFSIZ];
+
+    // Adding the tab character at the beginning of newLine
+    strcpy(temp, tab); // Copying the tab character into temp
+    strcat(temp, newLine); // Appending a newLine to temp
+    strcpy(newLine, temp); // Copying result back to newLine
+}
+
 void translateComment (char *line, char *newLine, int len, int position) {
     // Shifting the characters 1 position to the right from '#' index
     for (int i = len; i > position; --i) {
@@ -100,6 +110,31 @@ void translateFunction (char *line, char *newLine, int len, int position) {
 
 }
 
+void translatePrint (char *line, char *newLine, int len, int position) {
+    char expression[BUFSIZ];
+    char temp[BUFSIZ];
+    // Skipping the keyword print
+    int ind = position + 6;
+
+    // Extracting the expression
+    strcpy(temp, line + ind);
+
+    // Removing the \n
+    strncpy(expression, temp, strlen(temp) - 1);
+    printf("%s", temp);
+    // Handling the last line in the code
+    if (temp[strlen(temp) - 1] != '\n') {
+        strcpy(expression, temp);
+    }
+
+    // Formatting new line
+    sprintf(newLine, "printf(\"%%.6f\\n\", %s);\n", expression);
+
+    if (line[0] == '\t') {
+        prependTab(newLine);
+    }
+}
+
 void processLine (char *line, char *newLine) {
     // Calculating the length of the line
     int len = strlen(line);
@@ -121,6 +156,11 @@ void processLine (char *line, char *newLine) {
         // Translating the function
         else if (strncmp(line + i, "function", 8) == 0) { // Comparing first 8 characters for 'function' keyword
             translateFunction(line, newLine, len, i);
+            flag = 1;
+        }
+        // Translating the print statement
+        else if (strncmp(line + i, "print", 5) == 0) {
+            translatePrint(line, newLine, len, i);
             flag = 1;
         }
     }
