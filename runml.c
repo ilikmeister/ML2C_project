@@ -153,25 +153,22 @@ void processLine (char *line, char *newLine) {
             translateArrow(line, newLine, len, i + 1);
             flag = 1;
         }
-        // Translating the function
-        else if (strncmp(line + i, "function", 8) == 0) { // Comparing first 8 characters for 'function' keyword
-            translateFunction(line, newLine, len, i);
-            flag = 1;
-        }
         // Translating the print statement
-        else if (strncmp(line + i, "print", 5) == 0) {
+        else if (strncmp(line + i, "print", 5) == 0) { // Comparing 5 characters for 'print' keyword
             translatePrint(line, newLine, len, i);
             flag = 1;
         }
     }
 
-    if (flag != 1) {
+    if (!flag) {
         strcpy(newLine, line);
     }
 
 }
 
 void readFile (char mlFileName[]) {
+    // Flag for function
+    int funcFlag = 0;
     // Opening the passed ML file
     FILE *mlfile = fopen(mlFileName, "r");
     if (mlfile == NULL) {
@@ -197,8 +194,30 @@ void readFile (char mlFileName[]) {
 
     // Reading each line
     while (fgets(line, sizeof line, mlfile) != NULL) {
-       processLine(line, newLine); // Processing the line
-       fputs(newLine, cfile); // Writing the processed line to the new C file
+        // Checking the body of function
+        if (funcFlag) {
+            // Checking for tab
+            if (line[0] == '\t') {
+                processLine(line, newLine);
+            }
+            else {
+                // Closing the function
+                fputs("}\n", cfile);
+                // Resetting the flag
+                funcFlag = 0;
+            }
+        }
+        // Processing non function-body lines
+        if (!funcFlag) {
+            processLine(line, newLine); // Processing the line
+            // Checking for function keyword
+            if (strncmp(line, "function", 8) == 0) { // Comparing 8 characters for 'function' keyword
+                translateFunction(line, newLine, strlen(line), 0);
+                funcFlag = 1;
+            }
+        }
+        // Writing the processed line to the new C file
+        fputs(newLine, cfile);
     }
 
     // Closing both files
