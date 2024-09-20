@@ -11,7 +11,7 @@
 void compileCFile (char *cFileName, char *outputFileName) {
     char command[BUFSIZ];
 
-    // Constructing the gcc compile command
+    // Constructing the cc compile command
     sprintf(command, "cc -std=c11 -Wall -Werror -o %s %s", outputFileName, cFileName);
 
     // Executing the command
