@@ -167,8 +167,11 @@ void translatePrint (char *line, char *newLine, int len, int position) {
     strncpy(expression, temp, BUFSIZ - 1);
     expression[BUFSIZ - 1] = '\0';  // Adding null byte
 
-    // Formatting new line
-    sprintf(newLine, "printf(\"%%.6f\\n\", %s);\n", expression);
+    // Formatting new line by checking for whole number results
+    sprintf(newLine, 
+            "double temp_result = %s;\n"
+            "if ((int)temp_result == temp_result) printf(\"%%d\\n\", (int)temp_result); else printf(\"%%.6f\\n\", temp_result);\n", 
+            expression);
 
     // Handling tab indentation
     if (line[0] == '\t') {
