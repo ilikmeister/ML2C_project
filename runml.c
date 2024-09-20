@@ -32,6 +32,18 @@ void prependDouble (char* newLine) {
     newLine[BUFSIZ - 1] = '\0'; // Adding the null byte
 }
 
+void prependMain (char*newLine) {
+    char funcMain[36] = "int main(int argc, char *argv[]) {\n";
+    char temp[BUFSIZ];
+
+    // Adding the main function
+    strncpy(temp, funcMain, sizeof(temp) - 1); // Copying the main into temp
+    temp[sizeof(temp) - 1] = '\0'; // Adding the null byte
+    strncat(temp, newLine, sizeof(temp) - strlen(temp) - 1); // Appending a newLine to temp
+    strncpy(newLine, temp, BUFSIZ - 1); // Copying result back to newLine
+    newLine[BUFSIZ - 1] = '\0'; // Adding the null byte
+}
+
 void translateComment (char *line, char *newLine, int len, int position) {
     // Shifting the characters 1 position to the right from '#' index
     for (int i = len; i > position; --i) {
@@ -162,6 +174,11 @@ void translatePrint (char *line, char *newLine, int len, int position) {
     if (line[0] == '\t') {
         prependTab(newLine);
     }
+    // Starting the main function if no tab
+    else {
+        prependTab(newLine);
+        prependMain(newLine);
+    }
 }
 
 void translateReturn (char *line, char *newLine, int len, int position) {
@@ -229,8 +246,6 @@ void processLine (char *line, char *newLine) {
 }
 
 void readFile (char mlFileName[]) {
-    // Flag for function
-    int funcFlag = 0;
     // Opening the passed ML file
     FILE *mlfile = fopen(mlFileName, "r");
     if (mlfile == NULL) {
@@ -250,37 +265,53 @@ void readFile (char mlFileName[]) {
         exit(EXIT_FAILURE);
     }
 
+    // Including the libraries
+    fprintf(cfile, "#include <stdlib.h>\n");
+    fprintf(cfile, "#include <stdio.h>\n\n");
+
+    // Flag for function
+    int funcFlag = 0;
+
     // Initializing buffers to store lines
     char line[BUFSIZ];
     char newLine[BUFSIZ];
 
     // Reading each line
     while (fgets(line, sizeof line, mlfile) != NULL) {
-        // Checking the body of function
-        if (funcFlag) {
+        // Checking for function keyword
+        if (strncmp(line, "function", 8) == 0) { // Comparing 8 characters for 'function' keyword
+            // Checking whether already in a function
+            if (funcFlag) { 
+                fputs("}\n", cfile); // Closing the previous function
+            }
+            translateFunction(line, newLine, strlen(line), 0);
+            fputs(newLine, cfile); // Entering the function header into file
+            funcFlag = 1;
+        }
+        // Processing the body of function
+        else if (funcFlag) {
             // Checking for tab
             if (line[0] == '\t') {
-                processLine(line, newLine);
+                processLine(line, newLine); // Processing the body line
+                fputs(newLine, cfile); // Entering it to the file
             }
             else {
-                // Closing the function
-                fputs("}\n", cfile);
-                // Resetting the flag
-                funcFlag = 0;
+                funcFlag = 0; // Resetting the flag
+                fputs("}\n", cfile); // Closing the previous function
+                processLine(line, newLine); // Reprocessing the current line as non-function
+                fputs(newLine, cfile); // Writing it to the file
             }
         }
-        // Processing non function-body lines
-        if (!funcFlag) {
-            processLine(line, newLine); // Processing the line
-            // Checking for function keyword
-            if (strncmp(line, "function", 8) == 0) { // Comparing 8 characters for 'function' keyword
-                translateFunction(line, newLine, strlen(line), 0);
-                funcFlag = 1;
-            }
+        // Processing the non function lines
+        else {
+            processLine(line, newLine);
+            fputs(newLine, cfile);
         }
-        // Writing the processed line to the new C file
-        fputs(newLine, cfile);
     }
+
+    // Finishing the main function
+    fprintf(cfile, "    return 0;\n");
+    fprintf(cfile, "}\n");
 
     // Closing both files
     fclose(mlfile);
