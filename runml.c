@@ -113,23 +113,57 @@ void translateFunction (char *line, char *newLine, int len, int position) {
 void translatePrint (char *line, char *newLine, int len, int position) {
     char expression[BUFSIZ];
     char temp[BUFSIZ];
+
     // Skipping the keyword print
-    int ind = position + 6;
+    int ind = position + 5;
 
     // Extracting the expression
-    strcpy(temp, line + ind);
+    strncpy(temp, line + ind, len - ind);
+    temp[len - ind] = '\0'; // Adding the null byte 
 
     // Removing the \n
-    strncpy(expression, temp, strlen(temp) - 1);
-    printf("%s", temp);
-    // Handling the last line in the code
-    if (temp[strlen(temp) - 1] != '\n') {
-        strcpy(expression, temp);
+    size_t tempLen = strlen(temp);
+    if (temp[tempLen - 1] == '\n') {
+        temp[tempLen - 1] = '\0';
     }
+
+    // Copying the processed expression
+    strncpy(expression, temp, BUFSIZ - 1);
+    expression[BUFSIZ - 1] = '\0';  // Adding null byte
 
     // Formatting new line
     sprintf(newLine, "printf(\"%%.6f\\n\", %s);\n", expression);
 
+    // Handling tab indentation
+    if (line[0] == '\t') {
+        prependTab(newLine);
+    }
+}
+
+void translateReturn (char *line, char *newLine, int len, int position) {
+    char expression[BUFSIZ];
+    char temp[BUFSIZ];
+    // Skipping the keyword return
+    int ind = position + 7;
+
+    // Extracting the expression
+    strncpy(temp, line + ind, len - ind);
+    temp[len - ind] = '\0';  // Adding the null byte
+
+    // Removing the \n
+    size_t tempLen = strlen(temp);
+    if (temp[tempLen - 1] == '\n') {
+        temp[tempLen - 1] = '\0';
+    }
+
+    // Copying the processed expression
+    strncpy(expression, temp, BUFSIZ - 1);
+    expression[BUFSIZ - 1] = '\0';  // Adding null byte
+
+    // Formatting new line
+    sprintf(newLine, "return %s;\n", expression);
+
+    // Handling tab indentation
     if (line[0] == '\t') {
         prependTab(newLine);
     }
@@ -156,6 +190,10 @@ void processLine (char *line, char *newLine) {
         // Translating the print statement
         else if (strncmp(line + i, "print", 5) == 0) { // Comparing 5 characters for 'print' keyword
             translatePrint(line, newLine, len, i);
+            flag = 1;
+        }
+        else if (strncmp(line + i, "return", 6) == 0) { // Comparing 6 characters for 'return' keyword
+            translateReturn(line, newLine, len, i);
             flag = 1;
         }
     }
