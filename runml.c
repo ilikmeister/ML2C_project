@@ -12,7 +12,7 @@ void compileCFile (char *cFileName, char *outputFileName) {
     char command[BUFSIZ];
 
     // Constructing the cc compile command
-    sprintf(command, "cc -std=c11 -Wall -Werror -o %s %s", outputFileName, cFileName);
+    sprintf(command, "gcc -std=c11 -Wall -Werror -o %s %s", outputFileName, cFileName);
 
     // Executing the command
     int status = system(command);
@@ -26,7 +26,7 @@ void compileCFile (char *cFileName, char *outputFileName) {
 
 void runProgram (char *outputFileName, int argc, char *argv[]) {
     char command[BUFSIZ] = "";
-    strcat(command, "./");
+    //strcat(command, "./");
     strcat(command, outputFileName);
 
     // Runing the executable file
@@ -168,6 +168,12 @@ void translateFunction (char *line, char *newLine, int len, int position) {
     ind += strlen(funcName) + 1; // Skipping function's name
     // Extracting parameters
     while (sscanf(line + ind, "%s", param) == 1) {
+        // Checking for function's and parameter's name difference
+        if (strcmp(funcName, param) == 0) {
+            fprintf(stderr, "! Parameter's name can not be the same as the function name\n");
+            exit(EXIT_FAILURE);
+        }
+
         // Adding comma separator if the parameter is not the first
         if (strlen(parameters) > 0) {
             strcat(parameters, ", ");
