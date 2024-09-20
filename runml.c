@@ -8,6 +8,45 @@
 #include <unistd.h>
 #include <string.h>
 
+void compileCFile (char *cFileName, char *outputFileName) {
+    char command[BUFSIZ];
+
+    // Constructing the gcc compile command
+    sprintf(command, "cc -std=c11 -Wall -Werror -o %s %s", outputFileName, cFileName);
+
+    // Executing the command
+    int status = system(command);
+
+    // Checking if compilation was successful
+    if (status != 0) {
+        fprintf(stderr, "Compilation failed\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void runProgram (char *outputFileName, int argc, char *argv[]) {
+    char command[BUFSIZ] = "";
+    strcat(command, "./");
+    strcat(command, outputFileName);
+
+    // Runing the executable file
+    int status = system(command);
+
+    // Checking if the execution was successful
+    if (status != 0) {
+        fprintf(stderr, "Execution failed\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void cleanUp(char *cFileName, char *outputFileName) {
+    // Removing the generated C file
+    remove(cFileName);
+
+    // Removing the compiled executable
+    remove(outputFileName);
+}
+
 void prependTab (char* newLine) {
     char tab[2] = "\t";
     char temp[BUFSIZ];
@@ -151,7 +190,7 @@ void translatePrint (char *line, char *newLine, int len, int position) {
     char temp[BUFSIZ];
 
     // Skipping the keyword print
-    int ind = position + 5;
+    int ind = position + 6;
 
     // Extracting the expression
     strncpy(temp, line + ind, len - ind);
@@ -169,8 +208,8 @@ void translatePrint (char *line, char *newLine, int len, int position) {
 
     // Formatting new line by checking for whole number results
     sprintf(newLine, 
-            "double temp_result = %s;\n"
-            "if ((int)temp_result == temp_result) printf(\"%%d\\n\", (int)temp_result); else printf(\"%%.6f\\n\", temp_result);\n", 
+            "double tempResult = %s;\n"
+            "if ((int)tempResult == tempResult) printf(\"%%d\\n\", (int)tempResult); else printf(\"%%.6f\\n\", tempResult);\n", 
             expression);
 
     // Handling tab indentation
@@ -232,7 +271,7 @@ void processLine (char *line, char *newLine) {
             flag = 1;
         }
         // Translating the print statement
-        else if (strncmp(line + i, "print", 5) == 0) { // Comparing 5 characters for 'print' keyword
+        else if (strncmp(line + i, "print ", 6) == 0) { // Comparing 6 characters for 'print ' keyword
             translatePrint(line, newLine, len, i);
             flag = 1;
         }
@@ -332,9 +371,24 @@ int main (int argc, char *argv[]) {
         fprintf(stderr, "The file should be in '.ml' format\n");
         exit(EXIT_FAILURE);
     }
-    // Passing the file to read
+    // Passing the file to read, compiling, and executing
     else {
+        // Reading and translating
         readFile(argv[1]);
+
+        // Compiling
+        char cFileName[BUFSIZ];
+        sprintf(cFileName, "ml-%d.c", getpid()); // Assuming the same filename pattern
+        char outputFileName[BUFSIZ];
+        sprintf(outputFileName, "ml-%d", getpid()); // Outputing the program name
+        compileCFile(cFileName, outputFileName);
+
+        // Running the program
+        runProgram(outputFileName, argc, argv);
+
+        // Cleaning up
+        cleanUp(cFileName, outputFileName);
+
         return EXIT_SUCCESS;
     }
     return 0;
