@@ -12,7 +12,7 @@ void compileCFile (char *cFileName, char *outputFileName) {
     char command[BUFSIZ];
 
     // Constructing the cc compile command
-    sprintf(command, "gcc -std=c11 -Wall -Werror -o %s %s", outputFileName, cFileName);
+    sprintf(command, "cc -std=c11 -Wall -Werror -o %s %s", outputFileName, cFileName);
 
     // Executing the command
     int status = system(command);
@@ -26,7 +26,7 @@ void compileCFile (char *cFileName, char *outputFileName) {
 
 void runProgram (char *outputFileName, int argc, char *argv[]) {
     char command[BUFSIZ] = "";
-    //strcat(command, "./");
+    strcat(command, "./");
     strcat(command, outputFileName);
 
     // Runing the executable file
