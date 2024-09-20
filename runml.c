@@ -13,9 +13,11 @@ void prependTab (char* newLine) {
     char temp[BUFSIZ];
 
     // Adding the tab character at the beginning of newLine
-    strcpy(temp, tab); // Copying the tab character into temp
-    strcat(temp, newLine); // Appending a newLine to temp
-    strcpy(newLine, temp); // Copying result back to newLine
+    strncpy(temp, tab, sizeof(temp) - 1); // Copying the tab character into temp
+    temp[sizeof(temp) - 1] = '\0'; // Adding the null byte
+    strncat(temp, newLine, sizeof(temp) - strlen(temp) - 1); // Appending a newLine to temp
+    strncpy(newLine, temp, BUFSIZ - 1); // Copying result back to newLine
+    newLine[BUFSIZ - 1] = '\0'; // Adding the null byte
 }
 
 void translateComment (char *line, char *newLine, int len, int position) {
@@ -32,7 +34,8 @@ void translateComment (char *line, char *newLine, int len, int position) {
     line[len + 1] = '\0';
 
     // Copying the translated line to a new line
-    strcpy(newLine, line);
+    strncpy(newLine, line, BUFSIZ - 1);
+    newLine[BUFSIZ - 1] = '\0'; // Adding the null byte
 }
 
 void translateArrow (char *line, char *newLine, int len, int position) {
@@ -75,7 +78,8 @@ void translateArrow (char *line, char *newLine, int len, int position) {
     line[len] = '\0';
 
     // Copying the translated line to a new line
-    strcpy(newLine, line);
+    strncpy(newLine, line, BUFSIZ - 1);
+    newLine[BUFSIZ - 1] = '\0'; // Adding the null byte
 }
 
 void translateFunction (char *line, char *newLine, int len, int position) {
