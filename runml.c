@@ -92,6 +92,14 @@ void translateArrow (char *line, char *newLine, int len, int position) {
     // Copying the translated line to a new line
     strncpy(newLine, line, BUFSIZ - 1);
     newLine[BUFSIZ - 1] = '\0'; // Adding the null byte
+
+    // Prepending double
+    prependDouble(newLine);
+
+    // Handling indentation
+    if (line[0] == '\t') {
+        prependTab(newLine);
+    }
 }
 
 void translateFunction (char *line, char *newLine, int len, int position) {
@@ -201,7 +209,6 @@ void processLine (char *line, char *newLine) {
         // Translating an assignment sign
         else if (line[i] == '<' && line[i + 1] == '-') {
             translateArrow(line, newLine, len, i + 1);
-            prependDouble(newLine);
             flag = 1;
         }
         // Translating the print statement
