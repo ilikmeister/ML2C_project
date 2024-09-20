@@ -20,6 +20,18 @@ void prependTab (char* newLine) {
     newLine[BUFSIZ - 1] = '\0'; // Adding the null byte
 }
 
+void prependDouble (char* newLine) {
+    char doub[8] = "double ";
+    char temp[BUFSIZ];
+
+    // Adding the double at the beginning of newLine
+    strncpy(temp, doub, sizeof(temp) - 1); // Copying the double into temp
+    temp[sizeof(temp) - 1] = '\0'; // Adding the null byte
+    strncat(temp, newLine, sizeof(temp) - strlen(temp) - 1); // Appending a newLine to temp
+    strncpy(newLine, temp, BUFSIZ - 1); // Copying result back to newLine
+    newLine[BUFSIZ - 1] = '\0'; // Adding the null byte
+}
+
 void translateComment (char *line, char *newLine, int len, int position) {
     // Shifting the characters 1 position to the right from '#' index
     for (int i = len; i > position; --i) {
@@ -189,6 +201,7 @@ void processLine (char *line, char *newLine) {
         // Translating an assignment sign
         else if (line[i] == '<' && line[i + 1] == '-') {
             translateArrow(line, newLine, len, i + 1);
+            prependDouble(newLine);
             flag = 1;
         }
         // Translating the print statement
